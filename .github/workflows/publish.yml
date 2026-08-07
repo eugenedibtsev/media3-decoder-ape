@@ -1,0 +1,78 @@
+# Copyright (C) 2026 The media3-decoder-ape Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: Publish to Maven Central
+
+# Manual only. Publishing never happens automatically — see RELEASING.md for
+# the hard gate that must be checked off before this workflow is run.
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle (with cache)
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install NDK and CMake
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+              "ndk;27.0.12077973" "cmake;3.22.1" > /dev/null
+
+      - name: Download MACLib (pinned, checksum-verified)
+        run: ./media3-decoder-ape/src/main/jni/download_maclib.sh
+
+      - name: Build, check API, publish to the staging directory (signed)
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          SIGNING_PASSWORD: ${{ secrets.SIGNING_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon \
+              :media3-decoder-ape:apiCheck \
+              :media3-decoder-ape:publishReleasePublicationToStagingRepository
+
+      # Gradle already writes .md5/.sha1/.sha256/.sha512 for every artifact.
+      # The bundle must not contain maven-metadata files — the Portal
+      # generates its own.
+      - name: Create the Central Portal bundle
+        run: |
+          cd media3-decoder-ape/build/staging-deploy
+          zip -r ../central-bundle.zip . -x '*maven-metadata*'
+          unzip -l ../central-bundle.zip
+
+      - name: Upload to the Sonatype Central Portal (staged, manual release)
+        env:
+          CENTRAL_USERNAME: ${{ secrets.CENTRAL_USERNAME }}
+          CENTRAL_PASSWORD: ${{ secrets.CENTRAL_PASSWORD }}
+        run: |
+          BEARER=$(printf '%s:%s' "$CENTRAL_USERNAME" "$CENTRAL_PASSWORD" | base64 -w0)
+          curl --fail --request POST \
+            --header "Authorization: Bearer $BEARER" \
+            --form bundle=@media3-decoder-ape/build/central-bundle.zip \
+            'https://central.sonatype.com/api/v1/publisher/upload?publishingType=USER_MANAGED'
+          echo
+          echo "Uploaded. Review and release the deployment in the Central Portal UI."

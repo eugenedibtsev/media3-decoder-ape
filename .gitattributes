@@ -1,0 +1,15 @@
+# Normalize line endings; scripts must stay LF to run on Linux/macOS.
+* text=auto
+*.sh text eol=lf
+gradlew text eol=lf
+*.bat text eol=crlf
+
+# Binary test corpus
+*.ape binary
+*.pcm binary
+*.jar binary
+
+# Downloaded third-party sources (gitignored, but keep linguist honest if
+# anything under a vendored path ever gets committed).
+media3-decoder-ape/src/main/jni/maclib/** linguist-vendored
+licenses/** linguist-documentation

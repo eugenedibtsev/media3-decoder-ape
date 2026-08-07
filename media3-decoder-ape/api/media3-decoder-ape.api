@@ -1,0 +1,37 @@
+public final class io.github.eugenedibtsev.media3.ape.ApeDecoderException extends java.lang.Exception {
+  public final int errorCode;
+}
+public final class io.github.eugenedibtsev.media3.ape.ApeExtractor implements androidx.media3.extractor.Extractor {
+  public static final androidx.media3.extractor.ExtractorsFactory FACTORY;
+  public static final java.lang.String MIME_TYPE_APE;
+  public io.github.eugenedibtsev.media3.ape.ApeExtractor();
+  public boolean sniff(androidx.media3.extractor.ExtractorInput) throws java.io.IOException;
+  public void init(androidx.media3.extractor.ExtractorOutput);
+  public int read(androidx.media3.extractor.ExtractorInput, androidx.media3.extractor.PositionHolder) throws java.io.IOException;
+  public void seek(long, long);
+  public void release();
+}
+public final class io.github.eugenedibtsev.media3.ape.ApeLibrary {
+  public static void setLibraries(java.lang.String...);
+  public static boolean isAvailable();
+  public static java.lang.String getMacLibVersion();
+}
+public final class io.github.eugenedibtsev.media3.ape.ApeStreamMetadata {
+  public final int version;
+  public final int compressionLevel;
+  public final int channelCount;
+  public final int sampleRate;
+  public final int bitsPerSample;
+  public final long totalBlocks;
+  public long getDurationUs();
+  public int getBlockAlign();
+  public boolean isFloatingPoint();
+  public int getFrameCount();
+  public long getFrameCompressedBytes(int);
+  public static io.github.eugenedibtsev.media3.ape.ApeStreamMetadata parse(byte[], long) throws androidx.media3.common.ParserException;
+  public static int peekPrefixSize(byte[], int) throws androidx.media3.common.ParserException;
+}
+public final class io.github.eugenedibtsev.media3.ape.ApeSupport {
+  public static androidx.media3.extractor.ExtractorsFactory extractorsFactory();
+  public static androidx.media3.extractor.ExtractorsFactory extractorsFactory(androidx.media3.extractor.ExtractorsFactory);
+}

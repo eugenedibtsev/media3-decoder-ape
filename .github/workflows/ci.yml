@@ -1,0 +1,100 @@
+# Copyright (C) 2026 The media3-decoder-ape Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Validate Gradle wrapper
+        uses: gradle/actions/wrapper-validation@v6
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle (with cache)
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Install NDK and CMake
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
+              "ndk;27.0.12077973" "cmake;3.22.1" > /dev/null
+
+      - name: Download MACLib (pinned, checksum-verified)
+        run: ./media3-decoder-ape/src/main/jni/download_maclib.sh
+
+      - name: Build, unit tests, API check
+        run: |
+          ./gradlew --no-daemon \
+              :media3-decoder-ape:assembleRelease \
+              :media3-decoder-ape:testReleaseUnitTest \
+              :media3-decoder-ape:apiCheck \
+              :sample:assembleDebug
+
+      # Guards the linker flag in CMakeLists.txt: NDK r27 defaults to 4 KB
+      # segment alignment, which breaks 16 KB-page devices and Play's
+      # targetSdk 35+ requirement. Checks the shipped AAR, not intermediates.
+      - name: Verify 16 KB page alignment of the shipped native libraries
+        run: |
+          # ANDROID_HOME is a runner OS variable, so it is read in the shell —
+          # the `env` context would not see it.
+          export ANDROID_NDK_HOME="$ANDROID_HOME/ndk/27.0.12077973"
+          rm -rf build/aar-check && mkdir -p build/aar-check
+          unzip -q media3-decoder-ape/build/outputs/aar/media3-decoder-ape-release.aar \
+              -d build/aar-check
+          ./media3-decoder-ape/tools/check_so_alignment.sh build/aar-check
+
+      # KVM access for the emulator (Linux runners ship the module, but the
+      # device node is root-only by default).
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Instrumentation tests (x86_64 emulator, assets corpus)
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          disable-animations: true
+          # The measurement harnesses skip themselves without -e manual true,
+          # so the whole suite is safe to run unfiltered.
+          script: ./gradlew --no-daemon :media3-decoder-ape:connectedCheck
+
+      - name: Upload test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            media3-decoder-ape/build/reports/
+            media3-decoder-ape/build/outputs/androidTest-results/

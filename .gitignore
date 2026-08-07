@@ -1,0 +1,17 @@
+# Build outputs
+build/
+.gradle/
+.cxx/
+local.properties
+
+# Downloaded third-party sources (fetched by download_maclib.sh, never vendored)
+media3-decoder-ape/src/main/jni/maclib/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Tooling scratch
+__pycache__/
+.claude/
