@@ -213,7 +213,7 @@ DECODER_FUNC(void, apeRelease, jlong jcontext) {
 }
 
 static jint apeGetMacLibVersion(JNIEnv*, jclass) {
-  // From the pinned SDK's Version.h, e.g. 13 * 100 + 20 -> "13.20".
+  // From the pinned SDK's Version.h, e.g. 13 * 100 + 20 -> "13.27".
   return APE_VERSION_MAJOR * 100 + APE_VERSION_REVISION;
 }
 

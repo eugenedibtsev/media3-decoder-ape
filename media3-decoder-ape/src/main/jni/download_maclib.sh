@@ -20,9 +20,9 @@
 
 set -eu
 
-MACLIB_VERSION="13.20"
-MACLIB_URL="https://monkeysaudio.com/files/MAC_1320_SDK.zip"
-MACLIB_SHA256="9cdf4f5afff700b859d417d3996b70ed91d59c3bf7b2fb275f5faeeaf9e4e31e"
+MACLIB_VERSION="13.27"
+MACLIB_URL="https://monkeysaudio.com/files/MAC_1327_SDK.zip"
+MACLIB_SHA256="c47c6b36f6a7bd50d990f2eb36a70915c0074a7b9634be396c94464905e76686"
 
 cd "$(dirname "$0")"
 
