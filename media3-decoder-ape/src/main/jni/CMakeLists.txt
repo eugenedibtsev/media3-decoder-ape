@@ -36,6 +36,7 @@ set(maclib_sources
     "${maclib_root}/Source/MACLib/APETag.cpp"
     "${maclib_root}/Source/MACLib/BitArray.cpp"
     "${maclib_root}/Source/MACLib/FloatTransform.cpp"
+    "${maclib_root}/Source/MACLib/Interim.cpp"
     "${maclib_root}/Source/MACLib/MACLib.cpp"
     "${maclib_root}/Source/MACLib/MACProgressHelper.cpp"
     "${maclib_root}/Source/MACLib/MD5.cpp"

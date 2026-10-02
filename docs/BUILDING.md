@@ -24,7 +24,7 @@ cd media3-decoder-ape/src/main/jni
 ./download_maclib.sh
 ```
 
-The script downloads `MAC_1320_SDK.zip` from monkeysaudio.com, verifies its
+The script downloads `MAC_1327_SDK.zip` from monkeysaudio.com, verifies its
 SHA-256 against the value pinned in the script, and unpacks it into
 `src/main/jni/maclib/`. Re-running is a no-op when the pinned version is
 already present.

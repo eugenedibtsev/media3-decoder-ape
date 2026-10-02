@@ -4,6 +4,15 @@ All notable changes to this project are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow
 [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+* Bundled MACLib updated from 13.20 to 13.27 (`MAC_1327_SDK.zip`, SHA-256
+  pinned in `download_maclib.sh`). Upstream's notes for 13.23 and 13.24
+  cover decoder state reset on seek and I/O error recovery. `Interim.cpp`,
+  new in the SDK, is added to the native build (it holds the 24-bit decode
+  path). The load-retry workaround is unchanged: whether the upstream fix
+  makes it unnecessary has not been tested.
+
 ## [1.0.0] - 2026-08-08
 
 Initial public release.

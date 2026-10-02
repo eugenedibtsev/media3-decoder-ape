@@ -54,7 +54,7 @@ public final class ApeLibrary {
   }
 
   /**
-   * Returns the MACLib version the native library was built from, e.g. "13.20", or null if the
+   * Returns the MACLib version the native library was built from, e.g. "13.27", or null if the
    * native library is not available.
    */
   public static @androidx.annotation.Nullable String getMacLibVersion() {
